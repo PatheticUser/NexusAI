@@ -1,6 +1,6 @@
-# LangChain Chatbot (NexusAI)
+# NexusAI
 
-NexusAI is a Flask web chatbot built with LangChain + Ollama, with optional Tavily web search for live information.
+NexusAI is a GUI-based chatbot built with Flask and LangChain, providing a clean and interactive web interface for AI conversations. It integrates the Qwen3.5:cloud model via Ollama running locally with optional Tavily web search for live information, enabling efficient and flexible LLM interaction.The project demonstrates how modern AI frameworks can be combined with a local model runtime to build responsive chat applications.
 
 ## Features
 
@@ -56,6 +56,8 @@ BOT_DOMAIN=software engineering, programming, AI tooling, and developer workflow
 
 ```bash
 uv run python run.py
+or 
+uv run run.py
 ```
 
 5. Open in browser
