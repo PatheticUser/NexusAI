@@ -1,0 +1,230 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>NexusAI — Intelligent Chat Assistant</title>
+  <meta name="description" content="NexusAI: A powerful AI chatbot with web search capabilities, powered by Ollama and LangChain." />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/styles/github-dark.min.css" />
+  <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}" />
+</head>
+<body>
+
+  <!-- Ambient background orbs -->
+  <div class="bg-orb orb-1"></div>
+  <div class="bg-orb orb-2"></div>
+  <div class="bg-orb orb-3"></div>
+
+  <div class="app-layout">
+
+    <!-- ── SIDEBAR ── -->
+    <aside class="sidebar" id="sidebar">
+      <div class="sidebar-header">
+        <div class="logo">
+          <div class="logo-icon">
+            <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <span class="logo-text">NexusAI</span>
+        </div>
+        <button class="sidebar-toggle" id="sidebarToggle" title="Toggle sidebar" aria-label="Toggle sidebar">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/>
+            <line x1="3" y1="12" x2="21" y2="12"/>
+            <line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+
+        <!-- Model Info Card -->
+        <div class="info-card" id="modelCard">
+          <div class="info-card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.07 4.93a10 10 0 0 1 0 14.14M4.93 4.93a10 10 0 0 0 0 14.14"/></svg>
+            Model
+          </div>
+          <div class="info-card-value" id="modelName">{{ model_info.model }}</div>
+          <div class="info-card-sub">Temp: {{ model_info.temperature }} · Max: {{ model_info.max_tokens }} tokens</div>
+        </div>
+
+        <!-- Context Usage -->
+        <div class="info-card">
+          <div class="info-card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><path d="M8 21h8M12 17v4"/></svg>
+            Context Window
+          </div>
+          <div class="context-bar-wrap">
+            <div class="context-bar" id="contextBar">
+              <div class="context-fill" id="contextFill" style="width: 0%"></div>
+            </div>
+            <span class="context-label" id="contextLabel">0%</span>
+          </div>
+          <div class="info-card-sub" id="tokenCount">0 tokens used</div>
+        </div>
+
+        <!-- Stats -->
+        <div class="info-card">
+          <div class="info-card-title">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+            Session
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Messages</span>
+            <span class="stat-value" id="msgCount">0</span>
+          </div>
+          <div class="stat-row">
+            <span class="stat-label">Status</span>
+            <span class="stat-value status-online">● Online</span>
+          </div>
+        </div>
+
+        <!-- Actions -->
+        <button class="btn-action btn-clear" id="clearBtn" title="Clear conversation">
+          <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="3 6 5 6 21 6"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/><path d="M10 11v6M14 11v6"/><path d="M9 6V4a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>
+          Clear Conversation
+        </button>
+
+        <!-- Capabilities -->
+        <div class="capabilities">
+          <div class="cap-title">Capabilities</div>
+          <div class="cap-item">
+            <span class="cap-badge badge-llm">🤖</span>
+            <span>General AI responses</span>
+          </div>
+          <div class="cap-item">
+            <span class="cap-badge badge-web">🌐</span>
+            <span>Live web search</span>
+          </div>
+          <div class="cap-item">
+            <span class="cap-badge badge-code">💻</span>
+            <span>Code generation</span>
+          </div>
+        </div>
+
+      </div>
+    </aside>
+
+    <!-- ── MAIN CHAT AREA ── -->
+    <main class="chat-main">
+
+      <!-- Top bar -->
+      <header class="chat-header">
+        <button class="sidebar-toggle-mobile" id="sidebarToggleMobile" aria-label="Open sidebar">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/>
+          </svg>
+        </button>
+        <div class="chat-header-title">
+          <span>NexusAI</span>
+          <span class="header-badge">Beta</span>
+        </div>
+        <div class="header-actions">
+          <div class="search-mode-toggle" id="webSearchToggle" title="Force web search">
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+            <span>Web Search</span>
+            <div class="toggle-switch" id="webToggleSwitch">
+              <div class="toggle-thumb"></div>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <!-- Messages -->
+      <div class="messages-container" id="messagesContainer">
+
+        <!-- Welcome state (shown when empty) -->
+        <div class="welcome-state" id="welcomeState">
+          <div class="welcome-icon">
+            <svg width="40" height="40" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M12 2L2 7l10 5 10-5-10-5z"/>
+              <path d="M2 17l10 5 10-5"/>
+              <path d="M2 12l10 5 10-5"/>
+            </svg>
+          </div>
+          <h1 class="welcome-title">Hello, I'm NexusAI</h1>
+          <p class="welcome-sub">Powered by local Ollama — ready to help with anything.</p>
+
+          <div class="suggestion-grid">
+            <button class="suggestion-chip" data-text="What can you do for me?">
+              <span class="chip-icon">✨</span>
+              <span>What can you do?</span>
+            </button>
+            <button class="suggestion-chip" data-text="Search the web for the latest AI news in 2025">
+              <span class="chip-icon">🌐</span>
+              <span>Latest AI news</span>
+            </button>
+            <button class="suggestion-chip" data-text="Write a Python function to reverse a linked list">
+              <span class="chip-icon">💻</span>
+              <span>Code challenge</span>
+            </button>
+            <button class="suggestion-chip" data-text="Explain quantum computing in simple terms">
+              <span class="chip-icon">🔬</span>
+              <span>Explain quantum computing</span>
+            </button>
+            <button class="suggestion-chip" data-text="What are the best practices for REST API design?">
+              <span class="chip-icon">📐</span>
+              <span>REST API best practices</span>
+            </button>
+            <button class="suggestion-chip" data-text="Search the web for today's top tech stories">
+              <span class="chip-icon">📰</span>
+              <span>Today's tech stories</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Messages will be injected here -->
+        <div class="messages-list" id="messagesList"></div>
+
+        <!-- Typing indicator -->
+        <div class="typing-indicator hidden" id="typingIndicator">
+          <div class="typing-avatar">N</div>
+          <div class="typing-dots">
+            <div class="dot"></div>
+            <div class="dot"></div>
+            <div class="dot"></div>
+          </div>
+          <span class="typing-text">NexusAI is thinking…</span>
+        </div>
+
+      </div>
+
+      <!-- Input area -->
+      <div class="input-area">
+        <div class="input-wrapper">
+          <textarea
+            id="messageInput"
+            class="message-input"
+            placeholder="Ask anything — or say 'search the web for…'"
+            rows="1"
+            aria-label="Chat message input"
+          ></textarea>
+          <div class="input-actions">
+            <button class="btn-send" id="sendBtn" title="Send message" aria-label="Send message" disabled>
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+                <line x1="22" y1="2" x2="11" y2="13"/><polygon points="22 2 15 22 11 13 2 9 22 2"/>
+              </svg>
+            </button>
+          </div>
+        </div>
+        <p class="input-hint">Press <kbd>Enter</kbd> to send · <kbd>Shift+Enter</kbd> for new line · Context auto-managed</p>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Toast notification -->
+  <div class="toast" id="toast"></div>
+
+  <!-- Scripts -->
+  <script src="https://cdn.jsdelivr.net/npm/marked@12.0.0/marked.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.9.0/highlight.min.js"></script>
+  <script src="{{ url_for('static', filename='js/main.js') }}"></script>
+</body>
+</html>

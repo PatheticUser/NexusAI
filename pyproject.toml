@@ -1,11 +1,16 @@
 [project]
 name = "langchain-chatbot"
-version = "0.1.0"
-description = "Add your description here"
+version = "0.2.0"
+description = "NexusAI - LangChain chatbot with Flask web GUI, tiktoken context management, and Tavily web search"
 readme = "README.md"
 requires-python = ">=3.11.14"
 dependencies = [
     "langchain-ollama>=1.0.1",
     "ollama>=0.6.1",
     "python-dotenv>=1.2.2",
+    "flask>=3.0",
+    "langchain>=1.0",
+    "langchain-community>=0.4",
+    "tiktoken>=0.12",
+    "tavily-python>=0.7.0",
 ]
