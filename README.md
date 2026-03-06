@@ -1,108 +1,104 @@
-# LangChain Chatbot
+# LangChain Chatbot (NexusAI)
 
-A conversational AI chatbot built with [LangChain](https://www.langchain.com/) and [Ollama](https://ollama.com/), running large language models locally on your machine. No API keys needed — fully private and offline.
+NexusAI is a Flask web chatbot built with LangChain + Ollama, with optional Tavily web search for live information.
 
 ## Features
 
-- **Local LLM Inference** — Powered by Ollama, keeping all data on your machine
-- **Chat History** — Maintains multi-turn conversation context with configurable turn limits
-- **Prompt Templates** — Uses LangChain's `ChatPromptTemplate` with system prompts and message history
-- **Context Management** — Auto-warns when approaching the context limit and prevents overflow
-- **Environment Config** — Model, temperature, and max turns configurable via `.env`
+- Local LLM responses via Ollama (`ChatOllama`)
+- Flask web GUI chat interface
+- Session-based chat history
+- Token-budget context trimming with `tiktoken`
+- Tavily web search support:
+- Hard trigger from GUI toggle
+- Auto trigger for explicit web/current-event queries
+- Auto trigger for out-of-domain questions (router)
 
 ## Prerequisites
 
-- **Python** 3.11+
-- **Ollama** — [Install Ollama](https://ollama.com/download)
-- **uv** (recommended) — [Install uv](https://docs.astral.sh/uv/getting-started/installation/)
+- Python 3.11+
+- Ollama installed and running
+- `uv` recommended (`pip` also works)
+- Tavily API key (required only for web search)
 
 ## Quick Start
 
-### 1. Clone the repository
+1. Clone and enter the repo
 
 ```bash
 git clone -b main https://github.com/the-schoolofai/langchain-chatbot.git
 cd langchain-chatbot
 ```
 
-### 2. Install dependencies
+2. Install dependencies
 
 ```bash
 uv sync
 ```
 
-### 3. Pull an Ollama model
-
-```bash
-ollama pull qwen2.5-coder:3b
-```
-
-### 4. Configure environment
+3. Prepare environment
 
 ```bash
 cp .env.example .env
 ```
 
-Edit `.env` to customize:
+Set at least:
 
 ```env
-MODEL_NAME=qwen2.5-coder:3b
+MODEL_NAME=qwen3.5:cloud
 TEMPERATURE=0.7
-MAX_TURNS=5
+MAX_TOKENS=3000
+RESERVE_TOKENS=800
+TAVILY_API_KEY=tvly-your-key-here
+BOT_DOMAIN=software engineering, programming, AI tooling, and developer workflows
 ```
 
-### 5. Run the chatbot
+4. Run the app
 
 ```bash
-uv run python main.py
+uv run python run.py
 ```
 
-## Usage
+5. Open in browser
 
+```text
+http://localhost:5000
 ```
-Chatbot Ready! (type 'quit' to exit, 'clear' to reset memory)
-
-You: What is Python?
-AI: Python is a high-level, interpreted programming language...
-
-You: clear
-Memory cleared. Starting fresh!
-
-You: quit
-```
-
-| Command | Description                        |
-| ------- | ---------------------------------- |
-| `quit`  | Exit the chatbot                   |
-| `clear` | Reset conversation history         |
 
 ## Configuration
 
-| Variable      | Default            | Description                          |
-| ------------- | ------------------ | ------------------------------------ |
-| `MODEL_NAME`  | `qwen2.5-coder:3b` | Ollama model to use ([browse models](https://ollama.com/library)) |
-| `TEMPERATURE` | `0.7`              | Creativity of responses (0.0 – 1.0) |
-| `MAX_TURNS`   | `5`                | Max conversation turns before reset  |
+| Variable | Default | Description |
+| --- | --- | --- |
+| `MODEL_NAME` | `qwen3.5:cloud` | Ollama model name |
+| `TEMPERATURE` | `0.7` | Generation temperature |
+| `MAX_TOKENS` | `3000` | Total context budget |
+| `RESERVE_TOKENS` | `800` | Reserved budget for response |
+| `TAVILY_API_KEY` | _(empty)_ | Tavily key for web search |
+| `BOT_DOMAIN` | coding-focused text | Used by router for out-of-domain detection |
+| `FLASK_PORT` | `5000` | Web server port |
+| `FLASK_DEBUG` | `false` | Flask debug mode |
 
 ## Project Structure
 
-```
+```text
 langchain-chatbot/
-├── main.py            # Chatbot logic and interactive loop
-├── .env               # Local config (git-ignored)
-├── .env.example       # Example config template
-├── pyproject.toml     # Project metadata and dependencies
-├── uv.lock            # Locked dependency versions
-└── .gitignore
+|- app/
+|  |- chatbot.py          # Core chat + routing + context management
+|  |- web_search.py       # Tavily integration
+|  |- routes.py           # Flask API endpoints
+|  |- templates/          # HTML
+|  `- static/             # CSS + JS
+|- run.py                 # Flask entry point
+|- main.py                # Legacy CLI chatbot example
+|- .env.example
+|- pyproject.toml
+`- requirements.txt
 ```
 
-## Tech Stack
+## Notes
 
-- [LangChain](https://www.langchain.com/) — LLM application framework
-- [Ollama](https://ollama.com/) — Local LLM runtime
-- [python-dotenv](https://pypi.org/project/python-dotenv/) — Environment variable management
-- [uv](https://docs.astral.sh/uv/) — Fast Python package manager
+- If `TAVILY_API_KEY` is missing, forced web search returns an explicit error.
+- Non-web queries still work without Tavily using local model knowledge.
 
 ## License
 
-This project is open source and available under the [MIT License](LICENSE).
+MIT. See [LICENSE](LICENSE).
