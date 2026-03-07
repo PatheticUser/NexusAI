@@ -30,7 +30,7 @@ def search_web(query: str, max_results: int = 5) -> List[Dict[str, str]]:
         client = TavilyClient(api_key=api_key)
         response = client.search(
             query=query,
-            search_depth="advanced",
+            search_depth="basic",
             max_results=max_results,
         )
 

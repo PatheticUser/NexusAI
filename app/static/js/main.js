@@ -48,11 +48,22 @@ const webToggleSwitch = document.getElementById('webToggleSwitch');
 const sidebarToggle = document.getElementById('sidebarToggle');
 const sidebar = document.getElementById('sidebar');
 const sidebarToggleMobile = document.getElementById('sidebarToggleMobile');
+const typingText = document.getElementById('typingText');
+const statusDot = document.getElementById('statusDot');
 
 // ── State ─────────────────────────────────────────────────────────
 let isLoading = false;
 let forceWebSearch = false;
 let messageCount = 0;
+let typingInterval = null;
+
+const TYPING_MESSAGES = [
+    'Thinking…',
+    'Working on it…',
+    'One moment…',
+    'Almost there…',
+    'Generating…',
+];
 
 // ── Sidebar toggle ────────────────────────────────────────────────
 sidebarToggle.addEventListener('click', () => {
@@ -77,7 +88,7 @@ webSearchToggle.addEventListener('click', () => {
     forceWebSearch = !forceWebSearch;
     webToggleSwitch.classList.toggle('on', forceWebSearch);
     webSearchToggle.classList.toggle('active', forceWebSearch);
-    showToast(forceWebSearch ? '🌐 Web Search ON — all queries will search the web' : '🤖 Web Search OFF — using local AI');
+    showToast(forceWebSearch ? '🌐 Web Search ON' : '🤖 AI only');
 });
 
 // ── Auto-resize textarea ──────────────────────────────────────────
@@ -115,9 +126,9 @@ clearBtn.addEventListener('click', async () => {
         messageCount = 0;
         updateStats(0, 0, 0);
         welcomeState.classList.remove('hidden');
-        showToast('✨ Conversation cleared');
+        showToast('✨ New chat started');
     } catch (e) {
-        showToast('⚠️ Failed to clear conversation');
+        showToast('⚠️ Could not clear');
     }
 });
 
@@ -243,7 +254,7 @@ function updateStats(tokensUsed, contextPct, msgCnt) {
     const pct = Math.min(contextPct || 0, 100);
     contextFill.style.width = pct + '%';
     contextLabel.textContent = pct + '%';
-    tokenCount.textContent = `${(tokensUsed || 0).toLocaleString()} tokens used`;
+    tokenCount.textContent = `${(tokensUsed || 0).toLocaleString()} tokens`;
 
     // Color the bar based on usage
     contextFill.className = 'context-fill';
@@ -255,9 +266,22 @@ function updateStats(tokensUsed, contextPct, msgCnt) {
 function setLoading(loading) {
     isLoading = loading;
     typingIndicator.classList.toggle('hidden', !loading);
-    if (loading) scrollToBottom();
+    if (loading) {
+        scrollToBottom();
+        // Cycle through typing messages
+        let i = 0;
+        typingText.textContent = TYPING_MESSAGES[0];
+        typingInterval = setInterval(() => {
+            i = (i + 1) % TYPING_MESSAGES.length;
+            typingText.textContent = TYPING_MESSAGES[i];
+        }, 2500);
+        if (statusDot) { statusDot.textContent = '● Busy'; statusDot.style.color = 'var(--accent)'; }
+    } else {
+        clearInterval(typingInterval);
+        typingText.textContent = 'Thinking…';
+        if (statusDot) { statusDot.textContent = '● Online'; statusDot.style.color = ''; }
+    }
 
-    // Swap send button icon
     sendBtn.classList.toggle('loading', loading);
     if (loading) {
         sendBtn.innerHTML = `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">

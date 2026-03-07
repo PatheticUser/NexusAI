@@ -129,8 +129,11 @@ def _should_search_web(question: str, force_web_search: bool) -> bool:
 
 
 def _trim_history(history: List[BaseMessage], question: str) -> List[BaseMessage]:
-    budget = MAX_TOKENS - RESERVE_TOKENS - count_tokens(question) - count_tokens(
-        SYSTEM_PROMPT
+    budget = (
+        MAX_TOKENS
+        - RESERVE_TOKENS
+        - count_tokens(question)
+        - count_tokens(SYSTEM_PROMPT)
     )
     trimmed = list(history)
     while trimmed and count_messages_tokens(trimmed) > budget:
